@@ -1,0 +1,223 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+//אחר כך להעביר הכל לקבצי header
+
+typedef struct {
+	int neighbor;
+	int cost;
+} Edge;
+typedef struct edge_node {
+	Edge e;
+	struct edge_node* next;
+} EdgeNode;
+typedef struct {
+	EdgeNode* head;
+	EdgeNode* tail;
+} EdgeList;
+
+
+void checkAllocation(void* arr);
+void nullInsertArray(EdgeList* net, int n);
+
+void BuildNetwork(EdgeList* net, int n, int m);
+EdgeList* build_net(int n);
+//פונקציות עזר לbuild network
+bool validInput(int* a, int* b, int* price, int n, int maxAttempts);
+void updateList(EdgeList* list, int b, int price);
+EdgeNode* BuildNode(int neighbor, int cost);
+//פונקציות עזר לבנייה
+void addFirst(EdgeList* list, EdgeNode* node);
+void addLast(EdgeList* list, EdgeNode* node);
+void addMiddle(EdgeNode* prev, EdgeNode* node);
+
+
+ //בדיקת הקצאה דינאמית
+void checkAllocation(void* arr)
+{
+	if (!arr)
+	{
+		exit(1);
+	}
+}
+
+//השמת ערכי NULL בכל תא במערך
+void nullInsertArray(EdgeList* net, int n)
+{
+	for (int i = 0; i < n; i++) 
+	{
+		net[i].head = NULL;
+		net[i].tail = NULL;
+	}
+}
+
+//בדיקת קלטים. **לבדוק כמה ניסיונות יש למשתמש!
+bool validInput (int* a, int* b, int* price, int n, int maxAttempts) 
+{
+	int attempts = 0;
+	while (attempts < maxAttempts)
+	{
+		if (scanf("%d %d %d", a, b, price) != 3)  //אם לא התקבלו שלושה קלטים
+		{
+			printf("Invalid input. try again.\n");
+			attempts++;
+			while (getchar()!='\n'); // ניקוי
+			continue;
+		}
+		if (*a < 0 || *a >= n || *b < 0 || *b >= n || *price < 0) {
+			printf("Invalid values. try again.\n");
+			attempts++;
+			continue;
+		}
+		return true; // קלט תקין
+	}
+	return false; // נכשל לאחר MAXATTEMPTS ניסיונות
+}
+
+//הפונקציה הראשית בניית הרשת - קולטת את השלשות, הקצאה דינמית ומיון
+
+void BuildNetwork(EdgeList* net, int n, int m)
+
+{
+	int a, b, price;
+	for (int i = 0; i < m; i++) //התחלת קלט שלשות
+	{
+		//בדיקת קלטים
+		if (!validInput(&a, &b, &price, n, 0)) //לשנות את 0 למס ניסיונות המקסימלי
+		{
+			printf("failure"); //אם יש בעיה בקלט ונגמרו למשתמש הניסיונות
+			exit(1);
+		}
+		else // הקלט תקין
+		{
+			updateList(&net[a], b, price);
+			updateList(&net[b], a, price);
+		}
+
+	}
+}
+
+//הפונקציה שקוראים לה מהMAIN
+EdgeList* build_net(int n) 
+{
+	int m;
+	scanf("%d", &m); //קליטה מהמשתמש של מס הקווים
+
+	EdgeList* net = (EdgeList*)malloc(n * sizeof(EdgeList));  //הקצאת מקום
+	checkAllocation(net);
+	nullInsertArray(net, n);
+	BuildNetwork(net, n, m);
+	return net;
+}
+
+
+//פונקצית עזר לUpdate list שמעדכנת את הרשימה . הפונקציה מקצה מקום לאיבר חדש
+EdgeNode* BuildNode(int neighbor, int cost) 
+{
+
+	EdgeNode* newNode = (EdgeNode*)malloc(sizeof(EdgeNode));
+	checkAllocation(newNode);
+
+	newNode->e.neighbor = neighbor;
+	newNode->e.cost = cost;
+	newNode->next = NULL;
+
+	return newNode;
+}
+
+//עזר ל update list 
+void addFirst(EdgeList* list, EdgeNode* node)
+{
+	node->next = list->head;
+	list->head = node;
+
+	if (list->tail == NULL) //אם הרשימה ריקה נעדכן גם את הזנב 
+		list->tail = node;
+}
+
+void addLast(EdgeList* list, EdgeNode* node)
+{
+	node->next = NULL;
+
+	if (list->head == NULL) //אם הרשימה ריקה
+	{
+		list->head = node;
+		list->tail = node;
+	}
+	else
+	{
+		list->tail->next = node;
+		list->tail = node;
+	}
+}
+
+void addMiddle(EdgeNode* prev, EdgeNode* node)
+{
+	node->next = prev->next;
+	prev->next = node;
+
+}
+
+//עדכון תתי רשימות
+void updateList(EdgeList* list, int b, int price)
+{
+
+	//בדיקה אם המחשב כבר נמצא בתת הרשימה מניעת כפילויות
+	EdgeNode* curr = list->head;
+	while (curr != NULL)
+	{
+		if (curr->e.neighbor == b) //אם כבר קיים קו למחשב הזה
+		{
+			if (curr->e.cost != price) //אם הפעם המחיר שונה לעדכן למחיר החדש
+			{
+				curr->e.cost = price; 
+			}
+			return; //יציאה כדי לא להוסיף רשת כפולה 
+		}
+		curr = curr->next;
+	}
+
+ // התכנית ממשיכה אם הערך לא נמצא ברשימה
+
+
+	if (list->head == NULL) // הרשימה ריקה
+	{
+		EdgeNode* connectedComp = BuildNode(b, price);
+		list->head = connectedComp;
+		list->tail = connectedComp;
+	}
+	else //הרשימה לא ריקה - נבדוק באופן ממויין איפה להוסיף את האיבר החדש 
+	{
+
+		if (b < list->head->e.neighbor) //להוסיף בהתחלה של הרשימה - ערך קטן מהראש
+		{
+			EdgeNode* connectedComp = BuildNode(b, price);
+			addFirst(list, connectedComp);
+		}
+		else if (b > list->tail->e.neighbor) //להוסיף בסוף הרשימה - ערך גדול מהזנב 
+		{
+
+			EdgeNode* connectedComp = BuildNode(b, price);
+			addLast(list, connectedComp);
+		}
+		else
+		{
+			EdgeNode* current = list->head;
+			while (current->next != NULL)
+			{
+				if (b > (current->e.neighbor) && b < (current->next->e.neighbor))
+				{
+					EdgeNode* connectedComp = BuildNode(b, price);
+					addMiddle(current, connectedComp);
+					break;
+				}
+				current = current->next;
+			}
+		}
+	}
+
+}
