@@ -1,0 +1,229 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>// for InT arr
+#include <limits.h>//////////////////////////////////////////////////addition from while///////////////
+
+/////////////////////////////////////////////////////////////////////
+//////////////////////////for part #1///////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+
+typedef struct {
+      int neighbor;
+      int cost;
+} Edge;
+
+typedef struct edge_node {
+      Edge e;
+      struct edge_node* next;
+} EdgeNode;
+
+typedef struct {
+      EdgeNode* head;
+      EdgeNode* tail;
+} EdgeList;
+
+///////////////////////////////////////////////////////
+//////////////////////////to part #2///////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+
+typedef struct {
+      int computer;
+      int min;
+} Candidate;
+
+typedef struct candidate_node {
+      Candidate c;
+      struct candidate_node* next;
+      struct candidate_node* prev;
+} CandidateNode;
+
+typedef struct {
+      CandidateNode* head;
+      CandidateNode* tail;
+} CandidateList;
+
+/////////////////////////////////////////////////////////////////////////
+///////////////////////function signatures///////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+
+int* build_prim_tree(EdgeList net[], int n);   // main function to part #2
+///////functions to build arrs
+int* CreateMinArr(int num_of_computers);   // min arr   (difault value - INT_MAX)
+int* CreatePrimArr(int num_of_computers); // prim arr   (difault value - INT_MAX)
+int* CreateInTArr(int num_of_computers); // InT arr     (difault value - INT_MAX)    //??//
+///////functions to build priority list
+CandidateNode* CreateNode(int computer, int min); //craete node for priority list
+CandidateList* CreateEmptyList();    //craete empty priority list with dummy head and tail
+CandidateList* CreatePrioriryList(int num_of_computers); //craete priority list
+///////functions to build location arr
+CandidateNode** CreateLocationArr(CandidateList* priority_list, int num_of_computers); //function to build location arr (of computer in priority)
+
+
+////////////////////////////////////////////////////////////////////////
+/////////////////////main function of #2////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
+
+int* build_prim_tree(EdgeList net[], int n)
+{
+      int* prim_arr;
+      int* min_arr;
+      int* InT_arr;
+      CandidateList* priority_list;
+      CandidateNode** location_arr;
+
+      prim_arr = CreatePrimArr(n);   //we set and create in arrs the default parameters
+      min_arr = CreateMinArr(n);
+
+      priority_list = CreatePrioriryList(n);             //we build priority list and according that we create the location arr
+      location_arr = CreateLocationArr(priority_list, n);
+
+      InT_arr = CreateInTArr(n);          //we set and create in InT arr false
+
+
+}
+//////////////////////////////////////////////////////////////////////                     need to free
+////////////////////////create min arr////////////////////////////////
+int* CreateMinArr(int num_of_computers)                   //arr num 2
+{
+      int i = 0;  //counter
+      int* min_arr;
+
+      min_arr = (int*)malloc(sizeof(int) * num_of_computers);
+      if (min_arr == NULL)
+      {
+            exit(1);
+      }
+      else
+      {
+            while (i < num_of_computers)
+            {
+                  *(min_arr + i) = INT_MAX;   //It's a default parameter
+                  i++;
+            }
+      }
+      return min_arr;
+}
+//////////////////////////////////////////////////////////////////////                     need to free
+////////////////////////create min arr////////////////////////////////
+int* CreatePrimArr(int num_of_computers)                   //  arr ezer for prim
+{
+      int i = 0;  //counter
+      int* prim_arr;
+
+      prim_arr = (int*)malloc(sizeof(int) * num_of_computers);
+      if (prim_arr == NULL)
+      {
+            exit(1);
+      }
+      else
+      {
+            while (i < num_of_computers)
+            {
+                  *(prim_arr + i) = (-1);   //It's a default parameter
+                  i++;
+            }
+      }
+      return prim_arr;
+}
+//////////////////////////////////////////////////////////////////////                     need to free
+////////////////////////create InT arr////////////////////////////////
+int* CreateInTArr(int num_of_computers) /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////                     need to free
+///////////////////////////create new node////////////////////////////
+CandidateNode* CreateNode(int computer, int min)
+{
+      CandidateNode* new_node;
+      new_node = (CandidateNode*)malloc(sizeof(CandidateNode) * 1);
+      if (new_node == NULL)
+      {
+            exit(1);
+      }
+      else
+      {
+            new_node->c.computer = computer;
+            new_node->c.min = min;
+            new_node->next = NULL;
+            new_node->prev = NULL;
+      }
+      return new_node;
+}
+//////////////////////////////////////////////////////////////////////                     need to free                    
+////////////////////////make empty list///////////////////////////////
+CandidateList* CreateEmptyList()
+{
+      CandidateList* my_list;
+
+      my_list = (CandidateList*)malloc(sizeof(CandidateList) * 1);
+      if (my_list == NULL)
+      {
+            exit(1);
+      }
+      else
+      {
+            my_list->head = CreateNode(-2, -2); // set values for dummy nodes (-2 cant be num of computer or cost)  
+            my_list->tail = CreateNode(-2, -2); //carete the empty priority list
+            my_list->head->next = my_list->tail;
+            my_list->tail->prev = my_list->head;
+
+            return my_list;
+      }
+}
+//////////////////////////////////////////////////////////////////////                  
+////////////////////////create priority list//////////////////////////
+CandidateList* CreatePrioriryList(int num_of_computers)
+{
+      CandidateList* my_list;
+      my_list = CreateEmptyList();
+
+      CandidateNode* prev_node = my_list->head;
+      CandidateNode* new_node;
+      int i = 0;
+
+      while (i < num_of_computers)
+      {
+
+            new_node = CreateNode(i, INT_MAX);
+            prev_node->next = new_node;
+            new_node->prev = prev_node;
+            prev_node = new_node;
+            i++;
+      }
+      prev_node->next = my_list->tail;             /////////importent//////////////
+      my_list->tail->prev = prev_node;
+
+      return my_list;
+}
+//////////////////////////////////////////////////////////////////////                       need to free                
+////////////////////////build location arr///////////////////////////
+CandidateNode** CreateLocationArr(CandidateList* priority_list, int num_of_computers)
+{
+      CandidateNode** location_arr;
+      CandidateNode* new_pointer = priority_list->head->next;  //because head is dummy node
+      int i = 0;
+
+      location_arr = (CandidateNode**)malloc(sizeof(CandidateNode*) * num_of_computers);
+      if (location_arr == NULL)
+      {
+            exit(1);
+      }
+      else
+      {
+            while (i < num_of_computers)              //num_of_computers = lenght of priority list. so ew didnt do double check
+            {
+                  *(location_arr + i) = new_pointer;
+                  new_pointer = new_pointer->next;
+                  i++;
+            }
+      }
+      return location_arr;
+}
+/////////////////////////////////////////////////////////////////////////////////////
