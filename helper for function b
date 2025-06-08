@@ -1,0 +1,15 @@
+int cost(EdgeList Net[], int u, int v)
+{
+
+	EdgeNode* current = Net[u].head;
+	while (current != NULL)
+	{
+		if (current->e.neighbor == v)
+			return current->e.cost; //return the price
+
+		current = current->next;
+	}
+
+	return INT_MAX; //if there is no connection 
+
+}
