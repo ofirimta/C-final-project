@@ -1,0 +1,21 @@
+EdgeList* build_paths(int* Prim, int n)
+{
+
+    EdgeList* PrimPaths = (EdgeList*)malloc(n * sizeof(EdgeList));
+    checkAllocation(PrimPaths);
+    nullInsertArray(PrimPaths, n); //puts NULL in PrimPaths lists
+
+    for (int v = 0; v < n; v++) //run on all computers
+    {
+        int u = Prim[v]; //the parent
+        if (u != -1)  //if its not root -
+        {
+            //add to PrimPaths
+
+            updateList(&PrimPaths[u], v, 0);
+            updateList(&PrimPaths[v], u, 0);
+        }
+    }
+
+    return PrimPaths;
+}
