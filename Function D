@@ -1,0 +1,90 @@
+
+//Function D
+
+
+int* createColorArray(int n);    //set color and perent arrs
+int* createParentArray(int n);
+void FindPath(int first, int last, EdgeList* PrimPath, int* color, int* parent);       //rec function for update parent arr
+void PrintPath(int v, int first, int* parent);                                        //function to print prerent arr
+void FreeMeomeryFuncD(EdgeList* PrimPath, int* color, int* parent);       //function to free meomery
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+void find_and_print_path(EdgeList* PrimPath, int n, int first, int last)
+{
+	int* color = createColorArray(n);
+	int* parent = createParentArray(n);
+
+	FindPath(first, last, PrimPath, color, parent);
+	PrintPath(last, first, parent);
+	FreeMeomeryFuncD(PrimPath, color, parent);
+}
+////////////////////////////////////////////////////////////////////
+int* createColorArray(int n)
+{
+	int* color = (int*)malloc(n * sizeof(int));
+	checkAllocation(color);
+
+	for (int i = 0; i < n; i++)
+		color[i] = WHITE;
+
+	return color;
+}
+////////////////////////////////////////////////////////////////////
+int* createParentArray(int n)
+{
+	int* parent = (int*)malloc(n * sizeof(int));
+	checkAllocation(parent);
+
+	for (int i = 0; i < n; i++)
+		parent[i] = -1;
+
+	return parent;
+}
+////////////////////////////////////////////////////////////////////
+void FindPath(int first, int last, EdgeList* PrimPath, int* color, int* parent)
+{
+	color[first] = GRAY; //put status GRAY
+
+	EdgeList currentList = PrimPath[first];
+	EdgeNode* currentNode = currentList.head;
+
+	for (; currentNode != NULL; currentNode = currentNode->next)
+	{
+		int v = currentNode->e.neighbor; //get the computer
+
+		if (color[v] == WHITE) //if its still white
+		{
+			parent[v] = first;
+			if (v == last)
+				return;
+			else
+				FindPath(v, last, PrimPath, color, parent); //rec call
+		}
+	}
+	color[first] = BLACK; //finish and put status BLACK
+}
+////////////////////////////////////////////////////////////////////////////////////////////
+void PrintPath(int v, int first, int* parent)
+{
+	if (v == first)
+	{
+		printf("%d ", v);
+	}
+	else
+	{
+		PrintPath(parent[v], first, parent);
+		printf("%d ", v);
+	}
+
+}
+///////////////////////////////////////////////////////////////////////////////////////////
+void FreeMeomeryFuncD(EdgeList* PrimPath, int* color, int* parent)
+{
+	free(color);
+	free(parent);
+	free(PrimPath);
+}
+//////////////////////////////////////////////////////////////////////////////////////
